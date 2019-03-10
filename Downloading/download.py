@@ -15,7 +15,7 @@ def raw_reddit_json(subreddit, listing,amount=15):
             ('count', 1),
             ('limit', amount)
         )
-        response = requests.get('https://www.reddit.com/r/entitledparents/top.json', params=params, headers = {'User-agent': 'downloadScript'}).json()
+        response = requests.get(url, params=params, headers = {'User-agent': 'downloadScript'}).json()
         return response
     else:
         print("Invalid Listing option")
@@ -27,8 +27,13 @@ def raw_reddit_json(subreddit, listing,amount=15):
 def get_score(post):
     return post['data']['score']
     
-def get_selftext(post):
-    return post['data']['selftext']
+def get_selftext(post,utf_8=True,remove_edit=True):
+    if utf_8:
+        post = unidecode.unidecode(post['data']['selftext']).replace('&amp;#x200B;', '')
+    else: post = post['data']['selftext']
+    if remove_edit:
+        post = post.split("**Edit**", 1)[0]
+    return post    
 
 def get_title(post):
     return post['data']['title']
@@ -51,7 +56,9 @@ def return_stories_amount(subreddit,listing,wordcount=(VIDEO_LENGTH*WORDS_PER_SE
         if current_words >= wordcount:
             break
     return count
-    
+   
 #MAIN function    
 if __name__ == '__main__':
-    print (return_stories_amount("pettyrevenge","hot"))
+    response = raw_reddit_json("pettyrevenge","top",return_stories_amount("pettyrevenge","top"))
+    for i in response['data']['children']: 
+        print (get_selftext(i))
